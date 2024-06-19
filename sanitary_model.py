@@ -22,16 +22,13 @@ with col1 :
 with col2 :
     Display_Value = st.text_input ('Input Nilai Display Value')
 
-with col1 :
-    Numeric = st.text_input ('Input Nilai Numeric')
-
 
 # code untuk prediksi
 sanitary_level = ''
 
 # membuat tombol untuk prediksi
 if st.button('Lihat Akurasi'):
-    sanitary_prediction = sanitary_model.predict([['Year','WHO region','Country','Residence Area Type','Display Value','Numeric']])
+    sanitary_prediction = sanitary_model.predict([[Year,'WHO region','Country','Residence Area Type','Display Value']])
 
     if(sanitary_prediction[0] == 0):
         sanitary_predict = 'Tingkat Sanitasi Rendah'
