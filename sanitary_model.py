@@ -4,20 +4,6 @@ import streamlit as st
 # membaca model
 sanitary_model = pickle.load(open('sanitary_model.sav','rb'))
 
-# Path ke file model
-file_path = 'sanitary_model.sav'
-
-# Membuka file dan memuat model dengan aman
-try:
-    with open(file_path, 'rb') as file:
-        sanitary_model = pickle.load(file)
-        print("Model loaded successfully!")
-except FileNotFoundError:
-    print(f"File {file_path} does not exist.")
-except Exception as e:
-    print(f"An error occurred: {e}")
-
-    
 # judul web
 st.title('Tingkat Sanitasi pada Negara di Dunia')
 
