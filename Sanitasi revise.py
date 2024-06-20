@@ -1,133 +1,85 @@
 import numpy as np
 import pandas as pd
+import streamlit as st
 from sklearn.base import is_classifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import pickle
 
-# Memuat dataset dengan delimiter ';'
-sanitary_dataset = pd.read_csv('sanitary.csv', delimiter=';')
+# Fungsi untuk memuat data
+def load_data():
+    return pd.read_csv('sanitary.csv', delimiter=';')
 
-# Menampilkan beberapa baris pertama dari DataFrame untuk memastikan data dibaca dengan benar
-print("Beberapa baris pertama dari DataFrame:")
-print(sanitary_dataset.head())
+# Fungsi untuk melatih model
+def train_model(data):
+    X = data[['Year', 'Country', 'Residence Area Type', 'Display Value']]
+    y = data['Outcome']
 
-# Menampilkan nama kolom yang ada
-print("\nKolom yang tersedia dalam DataFrame:", sanitary_dataset.columns)
-
-# Memeriksa apakah kolom 'Outcome' ada
-if 'Outcome' in sanitary_dataset.columns:
-    outcome_counts = sanitary_dataset['Outcome'].value_counts()
-    print("\nValue count of Outcome:")
-    print(outcome_counts)
-else:
-    print("Kolom 'Outcome' tidak ditemukan dalam DataFrame.")
-
-# Memisahkan data dan label
-X = sanitary_dataset.drop(columns=['Outcome'])
-y = sanitary_dataset['Outcome']
-
-# Menampilkan jumlah data untuk setiap kelompok
-print("\nJumlah data:", len(X))
-print("Jumlah label:", len(y))
-
-# Menampilkan beberapa baris pertama dari setiap kelompok
-print("\nBeberapa baris pertama dari data:")
-print(X.head())
-
-print("\nBeberapa baris pertama dari label:")
-print(y.head())
-
-# Mengubah string ke numerik dengan LabelEncoder
-label_encoders = {}
-for column in ['WHO region', 'Country', 'Residence Area Type']:
-    if column in sanitary_dataset.columns:
+    label_encoders = {}
+    for column in ['Country', 'Residence Area Type']:
         label_encoders[column] = LabelEncoder()
         X[column] = label_encoders[column].fit_transform(X[column])
 
-# Melakukan standarisasi pada semua fitur (data)
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-# Convert scaled array back to DataFrame dengan nama kolom asli
-X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# Menampilkan beberapa baris pertama dari DataFrame setelah standarisasi
-print("\nBeberapa baris pertama dari DataFrame setelah standarisasi:")
-print(X_scaled_df.head())
-
-# Memisahkan data training dan testing
-X_train, X_test, y_train, y_test = train_test_split(X_scaled_df, y, test_size=0.2, random_state=42)
-
-# Menampilkan informasi tentang data yang sudah dipisahkan
-print("\nJumlah data training (X_train):", len(X_train))
-print("Jumlah data testing (X_test):", len(X_test))
-print("Jumlah label training (y_train):", len(y_train))
-print("Jumlah label testing (y_test):", len(y_test))
-
-# Pastikan ukuran X_train dan y_train sama, serta X_test dan y_test sama
-assert len(X_train) == len(y_train), "Jumlah baris X_train dan y_train tidak sama!"
-assert len(X_test) == len(y_test), "Jumlah baris X_test dan y_test tidak sama!"
-
-# Menampilkan beberapa baris pertama dari data training dan data testing
-print("\nBeberapa baris pertama dari data training (X_train):")
-print(X_train[:5])
-
-print("\nBeberapa baris pertama dari data testing (X_test):")
-print(X_test[:5])
+    regression_model = LinearRegression()
+    regression_model.fit(X_train, y_train)
     
-# Membuat model regresi linear
-regression_model = LinearRegression()
+    y_pred = regression_model.predict(X_test)
 
-# Melatih model regresi dengan data training
-regression_model.fit(X_train, y_train)
+    mse = mean_squared_error(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
 
-# Memprediksi hasil dengan data testing
-y_pred = regression_model.predict(X_test)
+    print(f"Mean Squared Error (MSE): {mse:.2f}")
+    print(f"Mean Absolute Error (MAE): {mae:.2f}")
+    print(f"R-squared (R²): {r2:.2f}")
+    print(f"R-squared (R²) dalam persen: {r2*100:.2f}%")
 
-# Evaluasi performa model menggunakan Mean Squared Error (MSE), Mean Absolute Error (MAE), dan R-squared (R²)
-mse = mean_squared_error(y_test, y_pred)
-mae = mean_absolute_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
+    return regression_model, scaler, label_encoders
 
-print(f"Mean Squared Error (MSE): {mse:.2f}")
-print(f"Mean Absolute Error (MAE): {mae:.2f}")
-print(f"R-squared (R²): {r2:.2f}")
-print(f"R-squared (R²) dalam persen: {r2*100:.2f}%")
+# Fungsi untuk memprediksi dengan model terlatih
+def predict(model, scaler, label_encoders, input_data):
+    input_data_list = list(input_data)
+    input_data_list[1] = label_encoders['Country'].transform([input_data_list[1]])[0]
+    input_data_list[2] = label_encoders['Residence Area Type'].transform([input_data_list[2]])[0]
+    
+    input_data_array = np.array(input_data_list).reshape(1, -1)
+    input_data_scaled = scaler.transform(input_data_array)
+    
+    prediction = model.predict(input_data_scaled)
+    return prediction[0]
 
-# Model prediksi
-input_data = (2003, 'Europe', 'Albania', 'Rural', 37, 3679997)  
+# Fungsi utama untuk aplikasi Streamlit
+def main():
+    st.title("Prediksi Tingkat Sanitasi")
 
-# Mengubah string ke numerik pada data input menggunakan encoder yang sudah dilatih
-input_data_list = list(input_data)
-input_data_list[1] = label_encoders['WHO region'].transform([input_data_list[1]])[0]
-input_data_list[2] = label_encoders['Country'].transform([input_data_list[2]])[0]
-input_data_list[3] = label_encoders['Residence Area Type'].transform([input_data_list[3]])[0]
+    # Memuat data dan melatih model
+    data = load_data()
+    model, scaler, label_encoders = train_model(data)
 
-# Convert input_data_list menjadi tuple
-input_data_tuple = tuple(input_data_list)
+    # Input pengguna
+    st.header("Input Data")
+    year = st.number_input("Tahun", min_value=2000, max_value=2023, value=2020)
+    country = st.selectbox("Negara", data['Country'].unique())
+    residence_area = st.selectbox("Area Tempat Tinggal", data['Residence Area Type'].unique())
+    display_value = st.number_input("Nilai Display", min_value=0.0, max_value=100.0, value=50.0)
 
-# Convert input_data ke numpy array dan buat DataFrame dengan nama kolom asli
-input_data_array = np.array(input_data_tuple).reshape(1, -1)
-input_data_df = pd.DataFrame(input_data_array, columns=X.columns)
+    # Melakukan prediksi saat tombol diklik
+    if st.button("Prediksi"):
+        input_data = (year, country, residence_area, display_value)
+        result = predict(model, scaler, label_encoders, input_data)
+        
+        if result < 0.5:
+            st.write('Tingkat Sanitasi Rendah')
+        else:
+            st.write('Tingkat Sanitasi Tinggi')
 
-# Standarisasi data input
-input_data_scaled = scaler.transform(input_data_df)
-
-print(input_data_scaled)
-
-prediction = regression_model.predict(input_data_scaled)
-print(prediction)
-
-if prediction[0] == 0:
-    print('Tingkat Sanitasi Rendah')
-else:
-    print('Tingkat Sanitasi Tinggi')
-
-
-# simpan model
-import pickle
-
-filename = 'sanitary_model.sav'
-pickle.dump(is_classifier, open(filename, 'wb'))
+# Menjalankan aplikasi Streamlit
+if __name__ == "__main__":
+    main()
