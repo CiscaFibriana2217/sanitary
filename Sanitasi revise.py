@@ -80,7 +80,7 @@ print(X_test[:5])
 # split data train dan data test
 def split_data(data):
     X = data.drop(columns=["Display Value", "Numeric"])  # Hapus fitur "Numeric"
-    y = data["Numeric"]
+    y = data["Display Value"]
 
     test_size = 0.2  # Tentukan ukuran test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
