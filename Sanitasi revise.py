@@ -57,23 +57,6 @@ X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)
 print("\nBeberapa baris pertama dari DataFrame setelah standarisasi:")
 print(X_scaled_df.head())
 
-# split data train dan data test
-def split_data(data):
-    X = data.drop(columns=["Display Value", "Numeric"])  # Hapus fitur "Numeric"
-    y = data["Numeric"]
-
-    test_size = 0.2  # Tentukan ukuran test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-    
-    # Menghitung persentase data training dan testing
-    train_percentage = len(X_train) / len(data) * 100
-    test_percentage = len(X_test) / len(data) * 100
-
-    st.write(f"Persentase data training: {train_percentage:.2f}%")
-    st.write(f"Persentase data testing: {test_percentage:.2f}%")
-
-    return X_train, X_test,y_train,y_test
-
 # Memisahkan data training dan testing
 X_train, X_test, y_train, y_test = train_test_split(X_scaled_df, y, test_size=0.2, random_state=42)
 
@@ -93,6 +76,24 @@ print(X_train[:5])
 
 print("\nBeberapa baris pertama dari data testing (X_test):")
 print(X_test[:5])
+
+# split data train dan data test
+def split_data(data):
+    X = data.drop(columns=["Display Value", "Numeric"])  # Hapus fitur "Numeric"
+    y = data["Numeric"]
+
+    test_size = 0.2  # Tentukan ukuran test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+    
+    # Menghitung persentase data training dan testing
+    train_percentage = len(X_train) / len(data) * 100
+    test_percentage = len(X_test) / len(data) * 100
+
+    st.write(f"Persentase data training: {train_percentage:.2f}%")
+    st.write(f"Persentase data testing: {test_percentage:.2f}%")
+
+    return X_train, X_test,y_train,y_test
+    
 
 # Membuat model regresi linear
 regression_model = LinearRegression()
