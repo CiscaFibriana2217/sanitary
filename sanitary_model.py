@@ -11,7 +11,7 @@ st.title('Tingkat Sanitasi pada Negara di Dunia')
 col1, col2 = st.columns(2)
 
 with col1 :
-    Year = st.text_input ('Input Nilai Tahun')
+    Year = st.text_input ('Input Tahun')
 
 with col2 :
     Country = st.text_input ('Input Negara')
@@ -21,6 +21,9 @@ with col1 :
 
 with col2 :
     Display_Value = st.text_input ('Input Nilai Display Value')
+
+with col1 :
+   WHO_region = st.text_input ('Input Wilayah WHO')
 
 
 # code untuk prediksi
