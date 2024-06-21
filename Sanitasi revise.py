@@ -43,13 +43,6 @@ def train_model(data):
 
     return regression_model, scaler, label_encoders
 
-# Simpan ke dalam satu file .sav
-filename = 'sanitary_model_data.sav'
-with open(filename, 'wb') as file:
-    pickle.dump('sanitary_model_data.sav', file)
-
-print(f"Model, scaler, dan label encoders disimpan ke dalam {filename}.")
-
 # Fungsi untuk memprediksi dengan model terlatih
 def predict(model, scaler, label_encoders, input_data):
     input_data_list = list(input_data)
