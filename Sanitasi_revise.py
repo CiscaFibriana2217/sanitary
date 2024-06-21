@@ -59,7 +59,7 @@ def predict(model, scaler, label_encoders, input_data):
 def main():
     st.set_page_config(page_title="Prediksi Tingkat Sanitasi", layout="wide")
     st.title("🌍 Prediksi Tingkat Sanitasi di Dunia")
-    st.write("Aplikasi ini memprediksi tingkat sanitasi berdasarkan input data.")
+    st.write("Aplikasi ini memprediksi tingkat sanitasi berdasarkan input data (Rentang 2000-2017 (Belum Update)).")
 
     # Memuat data dan melatih model
     data = load_data()
