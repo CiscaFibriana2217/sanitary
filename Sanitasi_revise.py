@@ -57,28 +57,40 @@ def predict(model, scaler, label_encoders, input_data):
 
 # Fungsi utama untuk aplikasi Streamlit
 def main():
-    st.title("Prediksi Tingkat Sanitasi")
+    st.set_page_config(page_title="Prediksi Tingkat Sanitasi", layout="wide")
+    st.title("🌍 Prediksi Tingkat Sanitasi di Dunia")
+    st.write("Aplikasi ini memprediksi tingkat sanitasi berdasarkan input data.")
 
     # Memuat data dan melatih model
     data = load_data()
-    model, scaler, label_encoders = train_model(data)
+    with st.spinner('Melatih model...'):
+        model, scaler, label_encoders = train_model(data)
+    st.success('Model berhasil dilatih!')
 
-    # Input pengguna
-    st.header("Input Data")
-    year = st.number_input("Tahun", min_value=2000, max_value=2023, value=2020)
-    country = st.selectbox("Negara", data['Country'].unique())
-    residence_area = st.selectbox("Area Tempat Tinggal", data['Residence Area Type'].unique())
-    display_value = st.number_input("Nilai Display", min_value=0.0, max_value=100.0, value=50.0)
+    # Sidebar untuk input pengguna
+    st.sidebar.header("Masukkan Data")
+    year = st.sidebar.number_input("Tahun", min_value=2000, max_value=2023, value=2020)
+    country = st.sidebar.selectbox("Negara", data['Country'].unique())
+    residence_area = st.sidebar.selectbox("Area Tempat Tinggal", data['Residence Area Type'].unique())
+    display_value = st.sidebar.number_input("Nilai Display", min_value=0.0, max_value=100.0, value=50.0)
 
     # Melakukan prediksi saat tombol diklik
-    if st.button("Prediksi"):
+    if st.sidebar.button("Prediksi"):
         input_data = (year, country, residence_area, display_value)
         result = predict(model, scaler, label_encoders, input_data)
         
         if result < 0.5:
-            st.write('Tingkat Sanitasi Rendah')
+            st.sidebar.write('Tingkat Sanitasi: **Rendah**')
         else:
-            st.write('Tingkat Sanitasi Tinggi')
+            st.sidebar.write('Tingkat Sanitasi: **Tinggi**')
+
+    # Menampilkan data asli dalam tabel
+    st.write("### Data Asli")
+    st.dataframe(data.head(10))
+
+    # Menampilkan grafik dari data
+    st.write("### Grafik Distribusi Data")
+    st.bar_chart(data['Outcome'].value_counts())
 
 # Menjalankan aplikasi Streamlit
 if __name__ == "__main__":
